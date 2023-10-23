@@ -13,7 +13,7 @@ const createUser = new Schema({
     },
     image:{
         type:String,
-        default:"image",
+        default:"http://pluspng.com/img-png/user-png-icon-download-icons-logos-emojis-users-2240.png",
     },
     email:{
         type:String,
@@ -22,8 +22,12 @@ const createUser = new Schema({
     password:{
         type:String,
         required:true,
+    },
+    role:{
+        type:String,
+        enum:["admin","user"],
+        default:"user",
     }
-
 })
 
 module.exports = mongoose.model("user",createUser)
