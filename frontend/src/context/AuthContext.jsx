@@ -6,6 +6,7 @@ export const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [allusers,setAllUsers] = useState(null);
  console.log("this is user",user)
   const signIn = (userData) => {
     setUser(userData);
@@ -15,8 +16,12 @@ const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+const getAllUsers = (data) =>{
+  setAllUsers(data);
+  console.log("these are all users",allusers)
+}
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, signIn, signOut,getAllUsers }}>
       {children}
     </AuthContext.Provider>
   );
