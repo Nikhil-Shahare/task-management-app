@@ -3,10 +3,11 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
-const Login = ({signIn}) => {
+import { useAuth } from '../context/AuthContext';
+const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
 
   const formik = useFormik({
     initialValues: {
@@ -22,18 +23,14 @@ const Login = ({signIn}) => {
       setLoading(true);
       console.log('Login submitted');
       console.log(values);
-
-      // Send login request to your server here
       try {
-        // Replace with your API endpoint for authentication
         const loginData = await axios.post('http://localhost:4000/api/v1/users/login', values);
-            signIn()
-        // Handle successful login, e.g., store tokens in local storage
-        // You can also use a state management library like Redux or context
-        console.log('Login successful:', loginData);
-
-        // Redirect to the home page or any other page after successful login
-        navigate('/home');
+        if (loginData.data.user) {
+            // Update user context with user data
+            signIn(loginData.data.user);
+            // Redirect to the home page or any other page after successful login
+            navigate('/home');
+          }
       } catch (err) {
         console.error('Login error:', err);
       }
