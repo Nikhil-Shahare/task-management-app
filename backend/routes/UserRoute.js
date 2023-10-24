@@ -109,7 +109,8 @@ router.delete('/users/:id', async (req, res) => {
 router.post('/users/login', async (req, res) => {
     try {
       const userData = req.body;
-  
+      console.log(userData)
+  console.log("user data passweord",userData.password)
       // Find the user by email
       const user = await User.findOne({ email: userData.email });
   
