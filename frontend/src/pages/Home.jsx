@@ -8,7 +8,8 @@ function Home() {
   const { user,allUsers} = useAuth();
   const { tasks,setTasks } = useTasks();
  const {projects, getAllProjects,getMyProjects,sharedProjects,myProjects,memberProjects} = useProjects();
-// to stop re rendering
+// to stop re rendering again and again
+
 const renderCountForProject = useRef(0)
 const renderCountForTask = useRef(0)
 console.log("this are users from login",allUsers)
