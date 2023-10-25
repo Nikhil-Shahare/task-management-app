@@ -33,9 +33,6 @@ const ProjectProvider = ({ children }) => {
     setMemberProjects(sharedProjects);
   } 
 
-   const updateProject =(data) ={
-
-   }
    
   
 

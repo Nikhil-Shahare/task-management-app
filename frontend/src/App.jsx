@@ -21,8 +21,19 @@ function App() {
     return <Navigate to="/" />;
   }
 
+
+
   return children;
 };
+
+const Redirect = ({children}) =>{
+  if(user){
+    return <Navigate to="/home"/>;
+
+  }
+  return children;
+ }
+
 
  
  return (
@@ -37,7 +48,7 @@ function App() {
           <TaskProvider>
           <Navbar  />
           <Routes>
-            <Route path="/" element={<Register />} />
+            <Route path="/" element={<Redirect><Register /></Redirect>} />
             <Route path="/login" element={<Login />} />
               <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                 

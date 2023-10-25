@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState,useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -8,20 +8,34 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [allUsers,setAllUsers] = useState(null);
  console.log("this is user",user)
-  const signIn = (userData) => {
-    setUser(userData);
-  };
-
-  const signOut = () => {
-    setUser(null);
-  };
-  const updateUser = (data) =>{
-    setUser(data)
+ useEffect(() => {
+  const storedUserData = localStorage.getItem('userData');
+  if (storedUserData) {
+    setUser(JSON.parse(storedUserData));
   }
+}, []);
 
-const getAllUsers = (data) =>{
+const signIn = (userData) => {
+  // Store user data in local storage when they sign in
+  localStorage.setItem('userData', JSON.stringify(userData));
+  setUser(userData);
+};
+
+const signOut = () => {
+  // Clear the stored authentication information
+  localStorage.removeItem('userData');
+  setUser(null);
+};
+
+const updateUser = (data) => {
+  // Update user data
+  localStorage.setItem('userData', JSON.stringify(data));
+  setUser(data);
+};
+
+const getAllUsers = (data) => {
   setAllUsers(data);
-}
+};
   return (
     <AuthContext.Provider value={{ user, signIn, signOut,getAllUsers,updateUser,allUsers }}>
       {children}
