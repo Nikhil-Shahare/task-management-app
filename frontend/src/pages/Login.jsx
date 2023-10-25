@@ -1,95 +1,73 @@
-import { useFormik } from "formik";
-import * as Yup from "yup";
-import React from 'react';
-import { color } from "@cloudinary/url-gen/qualifiers/background";
-import axios from "axios";
-const{VITE_CLOUD_NAME,VITE_API_KEY,VITE_API_SECRET,VITE_UPLOAD_PRESET} = import.meta.env;
-const Log = () => {
+import React, { useState } from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+const Login = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
+
   const formik = useFormik({
     initialValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      image: "",
+      email: '',
+      password: '',
     },
     validationSchema: Yup.object().shape({
-      firstName: Yup.string(),
-      lastName: Yup.string(),
-      email: Yup.string().email("Invalid email address"),
-      password: Yup.string(),
-      image: Yup.mixed().required("Image is required")
-      .test("FILE_SIZE", "File is too big! Maximum size is 2MB.", (value) => {
-        return value ? value.size <= 2 * 1024 * 1024 : true;
-      })
-      .test("FILE_TYPE", "Invalid file type! Only PNG and JPEG are allowed.", (value) => {
-        return value ? ["image/png", "image/jpeg"].includes(value.type) : true;
-      })
+      email: Yup.string().email('Invalid email address').required('Email is required'),
+      password: Yup.string().required('Password is required'),
     }),
-      
-    onSubmit: async(values, { resetForm }) => {
-      console.log("submitted");
+
+    onSubmit: async (values) => {
+      setLoading(true);
+      console.log('Login submitted');
       console.log(values);
-      const {image} = values
-      const formData = new FormData()
-      try{
-          formData.append("file",image)
-        formData.append("upload_preset",VITE_UPLOAD_PRESET)
-       const res = await axios.post(` https://api.cloudinary.com/v1_1/${VITE_CLOUD_NAME}/image/upload`,formData)
-       console.log("this is cloudinary res ",res)
-      }catch(err){
-        console.log(err)
+      try {
+        const loginData = await axios.post('http://localhost:4000/api/v1/users/login', values);
+        if (loginData.data.user) {
+            // Update user context with user data
+            signIn(loginData.data.user);
+            // Redirect to the home page or any other page after successful login
+            navigate('/home');
+          }
+      } catch (err) {
+        console.error('Login error:', err);
       }
-      // Reset the form after submission
-    //   resetForm();
+
+      setLoading(false);
     },
   });
 
   return (
-    <div className="user-registration">
-      <form onSubmit={formik.handleSubmit}>
-        <input
-          type="text"
-          name="firstName"
-          onChange={formik.handleChange}
-          value={formik.values.firstName}
-          placeholder="First Name"
-        />
+    <div className="user-login">
+      {loading ? (
+        'Logging in...'
+      ) : (
+        <form onSubmit={formik.handleSubmit}>
+          <input
+            type="email"
+            name="email"
+            onChange={formik.handleChange}
+            value={formik.values.email}
+            placeholder="Email"
+          />
+          {formik.errors.email && <p style={{ color: 'red' }}>{formik.errors.email}</p>}
 
-        <input
-          type="text"
-          name="lastName"
-          onChange={formik.handleChange}
-          value={formik.values.lastName}
-          placeholder="Last Name"
-        />
+          <input
+            type="password"
+            name="password"
+            onChange={formik.handleChange}
+            value={formik.values.password}
+            placeholder="Password"
+          />
+          {formik.errors.password && <p style={{ color: 'red' }}>{formik.errors.password}</p>}
 
-        <input
-          type="email"
-          name="email"
-          onChange={formik.handleChange}
-          value={formik.values.email}
-          placeholder="Email"
-        />
-
-        <input
-          type="password"
-          name="password"
-          onChange={formik.handleChange}
-          value={formik.values.password}
-          placeholder="Password"
-        />
-
-        <input
-          type="file"
-          name="image"
-          onChange={(e) => formik.setFieldValue("image", e.target.files[0])}
-        />
-        <div>{formik.errors.image && <p style={{color:"red"}}>{formik.errors.image}</p>}</div>
-        <button type="submit">Upload</button>
-      </form>
+          <button type="submit">Login</button>
+        </form>
+      )}
     </div>
   );
 };
 
-export default Log;
+export default Login;

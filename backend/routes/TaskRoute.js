@@ -7,7 +7,7 @@ const Project = require("../models/Project")
 const checkadmin =async(user)=>{
     try{
         const userid = await User.findOne({_id:user});
-        // console.log("this one is a user which i am trying to obtain",userid)
+        console.log("this one is a user which i am trying to obtain",userid)
   if(userid && userid.role === "admin"){
     return true;
   }
@@ -39,7 +39,7 @@ router.post('/tasks', async (req, res) => {
 // Get all tasks (Read operation)
 router.get('/tasks', async (req, res) => {
     try {
-      const userId = req.header('user-check'); // Get the user's ID from the request header.
+      const userId = req.header('user-id'); // Get the user's ID from the request header.
   
       // Check if the user is an admin by awaiting the result of the `checkadmin` function.
       const userIsAdmin = await checkadmin(userId);

@@ -1,103 +1,139 @@
-import React from "react";
-import { Formik, Field, Form, ErrorMessage } from "formik";
+import { useFormik } from "formik";
 import * as Yup from "yup";
+import React,{useState} from "react";
+import axios from "axios";
+import { useNavigate } from 'react-router-dom';
+const { VITE_CLOUD_NAME, VITE_UPLOAD_PRESET } = import.meta.env;
+const Register = () => {
+    const navigate = useNavigate();
+    const [loading,setLoading]=useState(false)
+  const formik = useFormik({
+    initialValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      image: null,
+    },
+    validationSchema: Yup.object().shape({
+      firstName: Yup.string()
+        .required("First Name is required")
+        .min(2, "Minimum 2 characters")
+        .max(10, "Maximum 10 characters"),
+      lastName: Yup.string()
+        .required("Last Name is required")
+        .min(2, "Minimum 2 characters")
+        .max(10, "Maximum 10 characters"),
+      email: Yup.string()
+        .email("Invalid email address")
+        .required("Email is required"),
+      password: Yup.string().required("Password is required"),
+      confirmPassword: Yup.string()
+        .oneOf([Yup.ref("password"), null], "Passwords must match")
+        .required("Confirm Password is required"),
+      image: Yup.mixed()
+        .required("Image is required")
+        .test("FILE_SIZE", "File is too big! Maximum size is 2MB.", (value) => {
+          return value ? value.size <= 2 * 1024 * 1024 : true;
+        })
+        .test("FILE_TYPE", "Invalid file type! Only PNG and JPEG are allowed.", (value) => {
+          return value ? ["image/png", "image/jpeg"].includes(value.type) : true;
+        }),
+    }),
 
-const{VITE_CLOUD_NAME,VITE_API_KEY,VITE_API_SECRET,VITE_UPLOAD_PRESET} = import.meta.env;
-const validationSchema = Yup.object().shape({
-  firstName: Yup.string().required("First Name is required"),
-  lastName: Yup.string().required("Last Name is required"),
-  email: Yup.string().email("Invalid email address").required("Email is required"),
-  password: Yup.string().required("Password is required"),
-  image: Yup.mixed().required("Image is required"),
-});
+    onSubmit: async (values) => {
+        setLoading(true);
+      console.log("submitted");
+      console.log(values);
 
-const initialValues = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-  image: "",
-};
+      // Upload the image to Cloudinary
+      const { image,confirmPassword, ...otherValues } = values;
+      const formData = new FormData();
+      formData.append("file", image);
+      formData.append("upload_preset", VITE_UPLOAD_PRESET);
 
-const UserForm = () => {
-  const handleSubmit = async (values, actions) => {
-    // Image upload to Cloudinary
-    console.log("this is values.image",values)
-    const formData = new FormData();
-    formData.append("file", values.image);
-    formData.append("upload_preset", VITE_UPLOAD_PRESET); // Set this in your Cloudinary settings
+      try {
+        const res = await axios.post(
+          `https://api.cloudinary.com/v1_1/${VITE_CLOUD_NAME}/image/upload`,
+          formData
+        );
+        const imageUrl = res.data.secure_url;
 
-    try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${VITE_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-      const result = await response.json();
-      values.image = result.secure_url; // Update the form field with the Cloudinary URL
-
-      // Now you can send the entire form data (including the Cloudinary URL) to your server for user creation
-      console.log("Form Data Submitted:", values);
-
-      // Reset the form after submission
-      actions.resetForm();
-    } catch (error) {
-      console.error("Error uploading image to Cloudinary:", error);
-    }
-  };
+        // Combine all the form data, including the image URL
+        const formDataToSubmit = { ...otherValues, image: imageUrl };
+        const uploadData = await axios.post("http://localhost:4000/api/v1/users",formDataToSubmit)
+        console.log("Form Data Submitted:", uploadData);
+        navigate("/home")
+      } catch (err) {
+        console.error("Error uploading image to Cloudinary:", err);
+      }
+      setLoading(false)
+    },
+  });
 
   return (
-    <div>
-      <h1>Create User</h1>
-      <Formik
-        initialValues={initialValues}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
-      >
-        {({ setFieldValue }) => (
-          <Form >
-            <div>
-              <label htmlFor="firstName">First Name:</label>
-              <Field type="text" name="firstName" />
-              <ErrorMessage name="firstName" component="div" className="error" />
-            </div>
-            <div>
-              <label htmlFor="lastName">Last Name:</label>
-              <Field type="text" name="lastName" />
-              <ErrorMessage name="lastName" component="div" className="error" />
-            </div>
-            <div>
-              <label htmlFor="email">Email:</label>
-              <Field type="text" name="email" />
-              <ErrorMessage name="email" component="div" className="error" />
-            </div>
-            <div>
-              <label htmlFor="password">Password:</label>
-              <Field type="password" name="password" />
-              <ErrorMessage name="password" component="div" className="error" />
-            </div>
-            
-            <div>
-              <label htmlFor="image">Image:</label>
-              <Field
-                type="file"
-                name="image"
-                onChange={(event) => {
-                  setFieldValue("image",event.currentTarget.files[0]);
-                }}
-              />
-              <ErrorMessage name="image" component="div" className="error" />
-            </div>
-            <div>
-              <button type="submit">Create User</button>
-            </div>
-          </Form>
-        )}
-      </Formik>
+    <div className="user-registration">
+        {loading?
+        "creating user":
+            <form onSubmit={formik.handleSubmit}>
+        <input
+          type="text"
+          name="firstName"
+          onChange={formik.handleChange}
+          value={formik.values.firstName}
+          placeholder="First Name"
+        />
+        {formik.errors.firstName && <p style={{ color: "red" }}>{formik.errors.firstName}</p>}
+
+        <input
+          type="text"
+          name="lastName"
+          onChange={formik.handleChange}
+          value={formik.values.lastName}
+          placeholder="Last Name"
+          />
+        {formik.errors.lastName && <p style={{ color: "red" }}>{formik.errors.lastName}</p>}
+
+        <input
+          type="email"
+          name="email"
+          onChange={formik.handleChange}
+          value={formik.values.email}
+          placeholder="Email"
+          />
+        {formik.errors.email && <p style={{ color: "red" }}>{formik.errors.email}</p>}
+
+        <input
+          type="password"
+          name="password"
+          onChange={formik.handleChange}
+          value={formik.values.password}
+          placeholder="Password"
+          />
+        {formik.errors.password && <p style={{ color: "red" }}>{formik.errors.password}</p>}
+
+        <input
+          type="password"
+          name="confirmPassword"
+          onChange={formik.handleChange}
+          value={formik.values.confirmPassword}
+          placeholder="Confirm Password"
+          />
+        {formik.errors.confirmPassword && <p style={{ color: "red" }}>{formik.errors.confirmPassword}</p>}
+
+        <input
+          type="file"
+          name="image"
+          onChange={(e) => formik.setFieldValue("image", e.target.files[0])}
+          />
+        {formik.errors.image && <p style={{ color: "red" }}>{formik.errors.image}</p>}
+
+        <button type="submit">Upload</button>
+      </form>
+}
     </div>
   );
 };
 
-export default UserForm;
+export default Register;

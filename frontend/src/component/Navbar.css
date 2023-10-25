@@ -1,0 +1,26 @@
+.nav-link{
+    font-size: 20px;
+    color: azure;
+    align-items: center;
+
+}
+
+.navbar{
+    align-items: center;
+    padding: 3px;
+}
+
+
+.title{
+    display: flex;
+    font-size: 20px;
+    font-style: italic;
+    font-family: Arial, Helvetica, sans-serif;
+    align-items: center;
+    padding: 0%;
+     
+}
+.list{
+    align-items: center;
+    display: flex;
+}
