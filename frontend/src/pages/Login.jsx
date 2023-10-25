@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn,getAllUsers } = useAuth();
 
   const formik = useFormik({
     initialValues: {
@@ -29,7 +29,17 @@ const Login = () => {
             // Update user context with user data
             signIn(loginData.data.user);
             // Redirect to the home page or any other page after successful login
+            const response = await axios.get('http://localhost:4000/api/v1/users'); 
+           await getAllUsers(response.data);
+         
+         
+         
+         
             navigate('/home');
+
+
+
+
           }
       } catch (err) {
         console.error('Login error:', err);

@@ -23,7 +23,7 @@ const Navbar = () => {
         {user ? (
           <>
             <li  className='list'><NavLink to="/projects" className="nav-link ">Projects</NavLink></li>
-            <li className='list'><NavLink to="/profile" className="nav-link text-xl">Profile</NavLink></li>
+            <li className='list'><NavLink to= {`profile/${user._id}`} className="nav-link text-xl">Profile</NavLink></li>
             <li className='list'><button onClick={handleLogout} className="logout-button">Logout</button></li>
           </>
         ) : (
